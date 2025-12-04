@@ -32,7 +32,7 @@ fun HomeScreen(
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = "Listado de clientes registrados:",
+            text = "Listado de cosas identificadas:",
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -49,9 +49,8 @@ fun HomeScreen(
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("${c.nombre} ${c.apellidoPaterno} (${c.rut})")
-                        Text("Correo: ${c.email}")
-                        Text("Teléfono: ${c.telefono}")
-                        Text("Ciudad: ${c.ciudad}")
+                        Text("Material: ${c.email}")
+                        Text("Color de basurero: ${c.ciudad}")
                     }
                 }
             }

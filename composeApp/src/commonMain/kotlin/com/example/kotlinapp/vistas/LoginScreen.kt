@@ -26,7 +26,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Inicio de Sesión", style = MaterialTheme.typography.headlineMedium)
+        Text("Proceso de Reciclaje" + "\n" + "Inicio de sesion", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(

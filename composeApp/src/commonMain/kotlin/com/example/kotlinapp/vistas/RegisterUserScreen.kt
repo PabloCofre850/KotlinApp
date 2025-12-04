@@ -20,9 +20,7 @@ fun RegisterUserScreen(
     var nombre by remember { mutableStateOf("") }
     var apellidoP by remember { mutableStateOf("") }
     var apellidoM by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var direccion by remember { mutableStateOf("") }
     var ciudad by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf<String?>(null) }
@@ -41,9 +39,7 @@ fun RegisterUserScreen(
         OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = apellidoP, onValueChange = { apellidoP = it }, label = { Text("Apellido Paterno") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = apellidoM, onValueChange = { apellidoM = it }, label = { Text("Apellido Materno") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = telefono, onValueChange = { telefono = it }, label = { Text("Teléfono") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Correo") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = direccion, onValueChange = { direccion = it }, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = ciudad, onValueChange = { ciudad = it }, label = { Text("Ciudad") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Contraseña") }, modifier = Modifier.fillMaxWidth())
 
@@ -54,7 +50,6 @@ fun RegisterUserScreen(
             onClick = {
                 val cliente = Cliente(
                     idCliente = 0,   // el repo asigna el id real
-                    direccion = direccion,
                     ciudad = ciudad,
                     tieneDeuda = false,
                     password = password,
@@ -62,7 +57,6 @@ fun RegisterUserScreen(
                     nombre = nombre,
                     apellidoPaterno = apellidoP,
                     apellidoMaterno = apellidoM,
-                    telefono = telefono,
                     email = email
                 )
 

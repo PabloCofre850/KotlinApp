@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    id("app.cash.sqldelight") version "2.0.1"
 }
 
 kotlin {
@@ -32,7 +31,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation("app.cash.sqldelight:android-driver:2.0.1")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -43,19 +41,11 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
-
-            //INTENTE METER SQL PERO NO PUDE//
-
-            implementation("app.cash.sqldelight:runtime:2.0.1")
-            implementation("app.cash.sqldelight:coroutines-extensions:2.0.1")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        iosMain.dependencies {
-            implementation("app.cash.sqldelight:native-driver:2.0.1")
-        }
+
     }
 
 }
