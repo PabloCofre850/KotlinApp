@@ -1,4 +1,4 @@
-package org.example.kotlinapp
+package com.example.kotlinapp
 
 import android.graphics.Bitmap
 import com.example.kotlinapp.GeminiConfig
@@ -7,12 +7,11 @@ import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
 class GeminiImageClient {
 
     // Modelo de Gemini configurado con tu API Key
     private val model = GenerativeModel(
-        modelName = "gemini-2.5-flash",   // 👈 modelo nuevo soportado en v1beta
+        modelName = "gemini-2.5-flash",
         apiKey = GeminiConfig.GEMINI_API_KEY
     )
 
