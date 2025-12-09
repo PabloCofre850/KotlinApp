@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import com.example.kotlinapp.data.ClienteRepository
 import com.example.kotlinapp.vistas.components.BotonSecundario
@@ -15,7 +15,11 @@ import com.example.kotlinapp.vistas.components.BotonSecundario
 @Composable
 fun HomeScreen(
     nombreCliente: String,
-    cerrarSesion: () -> Unit
+    cerrarSesion: () -> Unit,
+    photo: ImageBitmap?,
+    geminiText: String,
+    onOpenCamera: () -> Unit,
+    onSendToGemini: () -> Unit
 ) {
     val clientes = ClienteRepository.obtenerTodos()
 
@@ -24,6 +28,7 @@ fun HomeScreen(
             .fillMaxSize()
             .padding(24.dp)
     ) {
+
         Text(
             text = "Bienvenido, $nombreCliente",
             style = MaterialTheme.typography.headlineMedium
@@ -56,14 +61,43 @@ fun HomeScreen(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Spacer(Modifier.height(16.dp))
+
+        // -------- BOTÓN CÁMARA --------
+        Button(
+            onClick = onOpenCamera,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            BotonSecundario(
-                texto = "Cerrar sesión",
-                onClick = cerrarSesion
+            Text("Tomar foto para identificar")
+        }
+
+        // -------- NO MOSTRAMOS LA IMAGEN, SOLO EL BOTÓN PARA ENVIAR --------
+        if (photo != null) {
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = onSendToGemini,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Enviar a Gemini")
+            }
+        }
+
+        // -------- MOSTRAR RESPUESTA DE GEMINI --------
+        if (geminiText.isNotBlank()) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = geminiText,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        BotonSecundario(
+            texto = "Cerrar sesión",
+            onClick = cerrarSesion,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

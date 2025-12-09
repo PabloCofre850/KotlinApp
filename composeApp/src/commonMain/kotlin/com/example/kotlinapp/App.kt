@@ -7,7 +7,8 @@ import androidx.compose.ui.Modifier
 import com.example.kotlinapp.vistas.HomeScreen
 import com.example.kotlinapp.vistas.LoginScreen
 import com.example.kotlinapp.vistas.RegisterUserScreen
-
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.dp
 
 // Pantallas disponibles (nuestro "NavController simple")
 enum class Pantalla {
@@ -17,13 +18,21 @@ enum class Pantalla {
 }
 
 @Composable
-fun App() {
+fun App(
+    modifierPadding: PaddingValues = PaddingValues(0.dp),
+    photo: ImageBitmap? = null,
+    geminiText: String = "",
+    onOpenCamera: () -> Unit = {},
+    onSendToGemini: () -> Unit = {},
+) {
     var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
     var nombreClienteActual by remember { mutableStateOf("") }
 
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
+
             when (pantallaActual) {
+
                 Pantalla.LOGIN -> LoginScreen(
                     irARegistro = { pantallaActual = Pantalla.REGISTRO },
                     irAHome = { nombre ->
@@ -41,7 +50,11 @@ fun App() {
                     cerrarSesion = {
                         nombreClienteActual = ""
                         pantallaActual = Pantalla.LOGIN
-                    }
+                    },
+                    photo = photo,
+                    geminiText = geminiText,
+                    onOpenCamera = onOpenCamera,
+                    onSendToGemini = onSendToGemini
                 )
             }
         }

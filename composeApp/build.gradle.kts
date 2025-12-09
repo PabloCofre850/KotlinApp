@@ -23,16 +23,17 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
-
-
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
         }
         commonMain.dependencies {
+            implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -45,19 +46,15 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-
     }
-
 }
-
-
 
 android {
     namespace = "com.example.kotlinapp"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.kotlinapp"
+        applicationId = "org.example.kotlinapp"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
