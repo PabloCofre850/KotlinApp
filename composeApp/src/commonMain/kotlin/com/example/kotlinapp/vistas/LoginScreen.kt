@@ -12,8 +12,9 @@ import com.example.kotlinapp.vistas.components.BotonPrincipal
 
 @Composable
 fun LoginScreen(
+    repo: ClienteRepository,
     irARegistro: () -> Unit,
-    irAHome: (String) -> Unit  // pasamos el nombre del cliente
+    irAHome: (String) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -26,7 +27,9 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Proceso de Reciclaje" + "\n" + "Inicio de sesion", style = MaterialTheme.typography.headlineMedium)
+        Text("Proceso de Reciclaje\nInicio de sesión",
+            style = MaterialTheme.typography.headlineMedium)
+
         Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
@@ -50,7 +53,7 @@ fun LoginScreen(
         BotonPrincipal(
             texto = "Iniciar sesión",
             onClick = {
-                val cliente = ClienteRepository.login(email.trim(), password.trim())
+                val cliente = repo.login(email.trim(), password.trim())
                 if (cliente != null) {
                     mensajeError = null
                     irAHome(cliente.nombre)
@@ -62,7 +65,7 @@ fun LoginScreen(
 
         mensajeError?.let {
             Spacer(Modifier.height(8.dp))
-            Text(text = it, color = MaterialTheme.colorScheme.error)
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
 
         Spacer(Modifier.height(16.dp))

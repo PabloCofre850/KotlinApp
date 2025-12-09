@@ -14,6 +14,7 @@ import com.example.kotlinapp.vistas.components.BotonSecundario
 
 @Composable
 fun HomeScreen(
+    repo: ClienteRepository,
     nombreCliente: String,
     cerrarSesion: () -> Unit,
     photo: ImageBitmap?,
@@ -21,7 +22,7 @@ fun HomeScreen(
     onOpenCamera: () -> Unit,
     onSendToGemini: () -> Unit
 ) {
-    val clientes = ClienteRepository.obtenerTodos()
+    val clientes = repo.obtenerTodos()
 
     Column(
         modifier = Modifier
