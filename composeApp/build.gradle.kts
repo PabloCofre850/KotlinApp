@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -26,12 +27,22 @@ kotlin {
 
 
     }
-    
+
     sourceSets {
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+
+            // OKIO para Android
+            implementation("com.squareup.okio:okio:3.6.0")
         }
+
+        iosMain.dependencies {
+            // OKIO para iOS
+            implementation("com.squareup.okio:okio:3.6.0")
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -41,12 +52,19 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            // JSON
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+            // OKIO para common
+            implementation("com.squareup.okio:okio:3.6.0")
         }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-
     }
+
 
 }
 

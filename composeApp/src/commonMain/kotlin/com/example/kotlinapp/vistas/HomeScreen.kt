@@ -14,10 +14,11 @@ import com.example.kotlinapp.vistas.components.BotonSecundario
 
 @Composable
 fun HomeScreen(
+    repo: ClienteRepository,
     nombreCliente: String,
     cerrarSesion: () -> Unit
 ) {
-    val clientes = ClienteRepository.obtenerTodos()
+    val clientes = repo.obtenerTodos()
 
     Column(
         modifier = Modifier

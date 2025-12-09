@@ -11,9 +11,9 @@ import com.example.kotlinapp.vistas.components.BotonSecundario
 import com.example.kotlinapp.models.Cliente
 import com.example.kotlinapp.vistas.components.BotonPrincipal
 
-
 @Composable
 fun RegisterUserScreen(
+    repo: ClienteRepository,
     irALogin: () -> Unit
 ) {
     var rut by remember { mutableStateOf("") }
@@ -29,10 +29,11 @@ fun RegisterUserScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Registro de Cliente", style = MaterialTheme.typography.headlineMedium)
+        Text("Registro de Cliente",
+            style = MaterialTheme.typography.headlineMedium)
+
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(value = rut, onValueChange = { rut = it }, label = { Text("RUT") }, modifier = Modifier.fillMaxWidth())
@@ -49,7 +50,7 @@ fun RegisterUserScreen(
             texto = "Registrar",
             onClick = {
                 val cliente = Cliente(
-                    idCliente = 0,   // el repo asigna el id real
+                    idCliente = 0,
                     ciudad = ciudad,
                     tieneDeuda = false,
                     password = password,
@@ -60,11 +61,16 @@ fun RegisterUserScreen(
                     email = email
                 )
 
-                val ok = ClienteRepository.registrarCliente(cliente)
+                val ok = repo.registrarCliente(cliente)
+
                 mensaje = if (ok) {
-                    "Cliente registrado correctamente. Ahora puedes iniciar sesión."
+                    "Cliente registrado correctamente."
                 } else {
                     "Ya existe un cliente con ese RUT o correo."
+                }
+
+                if (ok) {
+                    irALogin()
                 }
             }
         )
@@ -73,14 +79,12 @@ fun RegisterUserScreen(
 
         BotonSecundario(
             texto = "Volver a Login",
-            onClick = {
-                irALogin()
-            }
+            onClick = irALogin
         )
 
         mensaje?.let {
             Spacer(Modifier.height(8.dp))
-            Text(text = it, color = MaterialTheme.colorScheme.primary)
+            Text(it, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
