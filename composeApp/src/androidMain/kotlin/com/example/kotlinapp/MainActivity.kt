@@ -70,7 +70,8 @@ class MainActivity : ComponentActivity() {
                                 scope.launch {
                                     val result = geminiClient.generateFromImage(
                                         bitmap = bitmap,
-                                        userPrompt = "Describe los objetos reciclables como JSON"
+                                        userPrompt = "Necesito que me des SOLO el diccionario de datos identificados en la imagen, no te pongas a inventar, solo si no te enc" +
+                                                "uentras nada, manda un NULL, si no manda el diccionario, clasificando en MATERIALCARTON, MATERIALORGANICO, MATERIALPLASTICO."
                                     )
                                     geminiResponse = result
                                 }
