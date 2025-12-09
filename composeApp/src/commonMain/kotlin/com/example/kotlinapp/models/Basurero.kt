@@ -1,5 +1,9 @@
 package com.example.kotlinapp.models
 
-class Basurero (
-    val color: String,
-)
+data class Basurero (
+    private val color: String,
+    private val description: String,
+    private val esReciclable: Boolean
+) {
+    fun getColor():String = color
+}
