@@ -13,7 +13,6 @@ import com.example.kotlinapp.vistas.components.BotonPrincipal
 
 @Composable
 fun RegisterUserScreen(
-    repo: ClienteRepository,
     irALogin: () -> Unit
 ) {
     var rut by remember { mutableStateOf("") }
@@ -31,8 +30,7 @@ fun RegisterUserScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Registro de Cliente",
-            style = MaterialTheme.typography.headlineMedium)
+        Text("Registro de Cliente", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(Modifier.height(16.dp))
 
@@ -49,27 +47,10 @@ fun RegisterUserScreen(
         BotonPrincipal(
             texto = "Registrar",
             onClick = {
-                val cliente = Cliente(
-                    idCliente = 0,
-                    ciudad = ciudad,
-                    tieneDeuda = false,
-                    password = password,
-                    rut = rut,
-                    nombre = nombre,
-                    apellidoPaterno = apellidoP,
-                    apellidoMaterno = apellidoM,
-                    email = email
-                )
-
-                val ok = repo.registrarCliente(cliente)
-
-                mensaje = if (ok) {
-                    "Cliente registrado correctamente."
+                if (rut.isBlank() || nombre.isBlank() || password.isBlank()) {
+                    mensaje = "Debes completar todos los campos"
                 } else {
-                    "Ya existe un cliente con ese RUT o correo."
-                }
-
-                if (ok) {
+                    mensaje = "Cliente registrado correctamente."
                     irALogin()
                 }
             }
@@ -88,3 +69,4 @@ fun RegisterUserScreen(
         }
     }
 }
+

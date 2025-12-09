@@ -1,6 +1,5 @@
 package com.example.kotlinapp
 
-
 import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,8 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import com.example.kotlinapp.models.GeminiImageClient
 import kotlinx.coroutines.launch
-import org.example.kotlinapp.GeminiImageClient
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +29,6 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val geminiClient = remember { GeminiImageClient() }
 
-            // launcher permiso de cámara
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { granted ->
@@ -41,7 +39,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // launcher cámara (foto previa)
             val cameraLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
@@ -59,7 +56,6 @@ class MainActivity : ComponentActivity() {
                         photo = photo,
                         geminiText = geminiResponse,
                         onOpenCamera = {
-                            // pedir permiso + abrir cámara
                             permissionLauncher.launch(Manifest.permission.CAMERA)
                             cameraLauncher.launch(null)
                         },
@@ -74,7 +70,7 @@ class MainActivity : ComponentActivity() {
                                 scope.launch {
                                     val result = geminiClient.generateFromImage(
                                         bitmap = bitmap,
-                                        userPrompt = "genera un diccionario de datos con los objetos que solamente se puedan reciclar de la imagen, separando por material organico, plastico, papel y carton para implementar en clases"
+                                        userPrompt = "Describe los objetos reciclables como JSON"
                                     )
                                     geminiResponse = result
                                 }

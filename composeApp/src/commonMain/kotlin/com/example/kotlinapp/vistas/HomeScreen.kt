@@ -8,13 +8,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import com.example.kotlinapp.data.ClienteRepository
 import com.example.kotlinapp.vistas.components.BotonSecundario
-
 
 @Composable
 fun HomeScreen(
-    repo: ClienteRepository,
     nombreCliente: String,
     cerrarSesion: () -> Unit,
     photo: ImageBitmap?,
@@ -22,7 +19,8 @@ fun HomeScreen(
     onOpenCamera: () -> Unit,
     onSendToGemini: () -> Unit
 ) {
-    val clientes = repo.obtenerTodos()
+    // TEMPORAL: lista vacía (hasta que NECESITES el repo otra vez)
+    val clientes = emptyList<Any>()
 
     Column(
         modifier = Modifier
@@ -47,16 +45,15 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(clientes) { c ->
+            items(clientes) { _ ->
+                // vacío, no hay datos reales aún
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Text("${c.nombre} ${c.apellidoPaterno} (${c.rut})")
-                        Text("Material: ${c.email}")
-                        Text("Color de basurero: ${c.ciudad}")
+                        Text("Sin datos aún")
                     }
                 }
             }
@@ -64,7 +61,6 @@ fun HomeScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // -------- BOTÓN CÁMARA --------
         Button(
             onClick = onOpenCamera,
             modifier = Modifier.fillMaxWidth()
@@ -72,7 +68,6 @@ fun HomeScreen(
             Text("Tomar foto para identificar")
         }
 
-        // -------- NO MOSTRAMOS LA IMAGEN, SOLO EL BOTÓN PARA ENVIAR --------
         if (photo != null) {
             Spacer(Modifier.height(12.dp))
 
@@ -84,7 +79,6 @@ fun HomeScreen(
             }
         }
 
-        // -------- MOSTRAR RESPUESTA DE GEMINI --------
         if (geminiText.isNotBlank()) {
             Spacer(Modifier.height(12.dp))
             Text(

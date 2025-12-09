@@ -4,11 +4,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.dp
 import com.example.kotlinapp.vistas.HomeScreen
 import com.example.kotlinapp.vistas.LoginScreen
 import com.example.kotlinapp.vistas.RegisterUserScreen
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.unit.dp
 
 // Pantallas disponibles (nuestro "NavController simple")
 enum class Pantalla {

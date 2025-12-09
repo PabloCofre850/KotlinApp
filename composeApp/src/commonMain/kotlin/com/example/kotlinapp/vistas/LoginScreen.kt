@@ -12,7 +12,6 @@ import com.example.kotlinapp.vistas.components.BotonPrincipal
 
 @Composable
 fun LoginScreen(
-    repo: ClienteRepository,
     irARegistro: () -> Unit,
     irAHome: (String) -> Unit
 ) {
@@ -53,10 +52,10 @@ fun LoginScreen(
         BotonPrincipal(
             texto = "Iniciar sesión",
             onClick = {
-                val cliente = repo.login(email.trim(), password.trim())
-                if (cliente != null) {
+                // TEMPORAL: login sin repositorio
+                if (email.isNotBlank() && password.isNotBlank()) {
                     mensajeError = null
-                    irAHome(cliente.nombre)
+                    irAHome(email.substringBefore("@"))
                 } else {
                     mensajeError = "Correo o contraseña incorrectos"
                 }
