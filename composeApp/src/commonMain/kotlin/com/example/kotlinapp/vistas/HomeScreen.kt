@@ -19,7 +19,7 @@ import com.example.kotlinapp.vistas.components.BotonSecundario
 
 @Composable
 fun HomeScreen(
-    nombreCliente: String,
+    username: String, // Corregido: de nombreCliente a username
     cerrarSesion: () -> Unit,
     photo: ImageBitmap?,
     geminiText: String,
@@ -43,7 +43,7 @@ fun HomeScreen(
         // --- Saludo ---
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "¡Hola, $nombreCliente!",
+                text = "¡Hola, $username!", // Usar username
                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                 color = RecycleGreenDark
             )
@@ -63,23 +63,11 @@ fun HomeScreen(
                 modifier = Modifier.padding(20.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Reemplazo de Icono de Cámara por Emoji
-                Text(
-                    text = "📸",
-                    fontSize = 60.sp
-                )
+                Text("📸", fontSize = 60.sp)
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    "¿Listo para reciclar?",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = RecycleGreenDark
-                )
+                Text("¿Listo para reciclar?", style = MaterialTheme.typography.titleLarge, color = RecycleGreenDark)
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    "Toma una foto de un objeto para saber cómo reciclarlo.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = RecycleGreenDark
-                )
+                Text("Toma una foto de un objeto para saber cómo reciclarlo.", style = MaterialTheme.typography.bodyMedium, color = RecycleGreenDark)
                 Spacer(Modifier.height(16.dp))
                 BotonPrincipal(
                     texto = "Escanear Producto",
@@ -90,12 +78,7 @@ fun HomeScreen(
 
         // --- Sección de Consejos ---
         Spacer(Modifier.height(32.dp))
-        Text(
-            "Consejos Rápidos",
-            style = MaterialTheme.typography.titleLarge,
-            color = RecycleGreenDark,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Text("Consejos Rápidos", style = MaterialTheme.typography.titleLarge, color = RecycleGreenDark, modifier = Modifier.padding(bottom = 8.dp))
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -105,10 +88,8 @@ fun HomeScreen(
             }
         }
 
-        // Espacio para empujar el botón de cerrar sesión hacia abajo
         Spacer(Modifier.weight(1f))
 
-        // --- Botón de Cerrar Sesión ---
         BotonSecundario(
             texto = "Cerrar sesión",
             onClick = cerrarSesion
@@ -125,11 +106,7 @@ private fun ConsejoCard(texto: String) {
         Column(
             modifier = Modifier.padding(12.dp)
         ) {
-            // Reemplazo de Icono de Bombilla por Emoji
-            Text(
-                text = "💡",
-                fontSize = 24.sp
-            )
+            Text("💡", fontSize = 24.sp)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = texto,
