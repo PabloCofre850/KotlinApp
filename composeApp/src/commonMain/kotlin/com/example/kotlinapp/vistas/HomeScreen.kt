@@ -19,13 +19,12 @@ import com.example.kotlinapp.ui.theme.*
 import com.example.kotlinapp.vistas.components.BotonPrincipal
 import com.example.kotlinapp.vistas.components.BotonSecundario
 
-// Datos para la guía de colores
 data class InfoBasurero(
     val color: Color,
     val nombre: String,
     val emoji: String,
     val descripcion: String,
-    val textColor: Color = Color.White // Por defecto texto blanco para contraste
+    val textColor: Color = Color.White
 )
 
 @Composable

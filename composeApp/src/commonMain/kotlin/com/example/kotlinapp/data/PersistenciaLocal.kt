@@ -6,11 +6,11 @@ import kotlinx.serialization.json.Json
 
 class PersistenciaLocal(private val storage: FileStorage) {
 
-    // Configuración de JSON para ser más tolerante
+    // Configuración de JSON
     private val json = Json { 
         prettyPrint = true 
         ignoreUnknownKeys = true // Ignorar campos que no existen en el modelo actual
-        isLenient = true // Ser más flexible con el formato
+        isLenient = true // Ser más flexible
     }
 
     fun guardar(lista: List<ClienteSerializable>) {
@@ -28,7 +28,7 @@ class PersistenciaLocal(private val storage: FileStorage) {
             json.decodeFromString(contenido)
         } catch (e: Exception) {
             println("Error al cargar clientes (formato incompatible o corrupto): ${e.message}")
-            // Si falla la lectura (ej. cambio de modelo), devolvemos lista vacía para evitar crash
+            // Si falla la lectura
             emptyList()
         }
     }

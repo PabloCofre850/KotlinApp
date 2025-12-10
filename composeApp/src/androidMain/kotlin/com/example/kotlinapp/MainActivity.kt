@@ -106,10 +106,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                     } catch (e: Exception) {
-                        // Captura errores de red o de parseo
+
                         showError("Error", "No se pudo procesar la imagen. Revisa tu conexión o intenta con otra foto.")
                     } finally {
-                        isLoading = false // Se ejecuta siempre
+                        isLoading = false
                     }
                 }
             }
