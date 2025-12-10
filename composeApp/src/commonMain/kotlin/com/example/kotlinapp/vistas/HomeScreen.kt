@@ -19,8 +19,7 @@ fun HomeScreen(
     onOpenCamera: () -> Unit,
     onSendToGemini: () -> Unit
 ) {
-    // TEMPORAL: lista vacía (hasta que NECESITES el repo otra vez)
-    val clientes = emptyList<Any>()
+    val clientes = emptyList<Any>() // temporal
 
     Column(
         modifier = Modifier
@@ -28,28 +27,18 @@ fun HomeScreen(
             .padding(24.dp)
     ) {
 
-        Text(
-            text = "Bienvenido, $nombreCliente",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text("Bienvenido, $nombreCliente", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(Modifier.height(16.dp))
 
-        Text(
-            text = "Listado de cosas identificadas:",
-            style = MaterialTheme.typography.titleMedium
-        )
+        Text("Listado de cosas identificadas:", style = MaterialTheme.typography.titleMedium)
 
         Spacer(Modifier.height(8.dp))
 
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            items(clientes) { _ ->
-                // vacío, no hay datos reales aún
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(clientes) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -70,21 +59,12 @@ fun HomeScreen(
 
         if (photo != null) {
             Spacer(Modifier.height(12.dp))
-
             Button(
                 onClick = onSendToGemini,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Enviar a Gemini")
             }
-        }
-
-        if (geminiText.isNotBlank()) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = geminiText,
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
 
         Spacer(Modifier.height(16.dp))

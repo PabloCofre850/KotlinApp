@@ -12,7 +12,6 @@ import com.example.kotlinapp.vistas.LoginScreen
 import com.example.kotlinapp.vistas.RegisterUserScreen
 import com.example.kotlinapp.vistas.ResultadoScreen
 
-// Pantallas disponibles (nuestro "NavController simple")
 enum class Pantalla {
     LOGIN,
     REGISTRO,
@@ -22,59 +21,46 @@ enum class Pantalla {
 
 @Composable
 fun App(
-    modifierPadding: PaddingValues = PaddingValues(0.dp),
+    modifierPadding: PaddingValues,
     photo: ImageBitmap?,
     geminiText: String,
     listaReciclaje: List<ItemReciclaje>,
     pantallaActual: Pantalla,
     onChangePantalla: (Pantalla) -> Unit,
     onOpenCamera: () -> Unit,
-    onSendToGemini: () -> Unit,
+    onSendToGemini: () -> Unit
 ) {
-    var nombreClienteActual by remember { mutableStateOf("") }
+    var nombreCliente by remember { mutableStateOf("") }
 
-    MaterialTheme {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(modifierPadding)
-        ) {
-            when (pantallaActual) {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        when (pantallaActual) {
 
-                Pantalla.LOGIN -> LoginScreen(
-                    irARegistro = { onChangePantalla(Pantalla.REGISTRO) },
-                    irAHome = { nombre ->
-                        nombreClienteActual = nombre
-                        onChangePantalla(Pantalla.HOME)
-                    }
-                )
+            Pantalla.LOGIN -> LoginScreen(
+                irARegistro = { onChangePantalla(Pantalla.REGISTRO) },
+                irAHome = { nombre ->
+                    nombreCliente = nombre
+                    onChangePantalla(Pantalla.HOME)
+                }
+            )
 
-                Pantalla.REGISTRO -> RegisterUserScreen(
-                    irALogin = { onChangePantalla(Pantalla.LOGIN) }
-                )
+            Pantalla.REGISTRO -> RegisterUserScreen(
+                irALogin = { onChangePantalla(Pantalla.LOGIN) }
+            )
 
-                Pantalla.HOME -> HomeScreen(
-                    nombreCliente = nombreClienteActual,
-                    cerrarSesion = {
-                        nombreClienteActual = ""
-                        onChangePantalla(Pantalla.LOGIN)
-                    },
-                    photo = photo,
-                    geminiText = geminiText,
-                    onOpenCamera = onOpenCamera,
-                    onSendToGemini = onSendToGemini
-                )
+            Pantalla.HOME -> HomeScreen(
+                nombreCliente = nombreCliente,
+                cerrarSesion = { onChangePantalla(Pantalla.LOGIN) },
+                photo = photo,
+                geminiText = geminiText,
+                onOpenCamera = onOpenCamera,
+                onSendToGemini = onSendToGemini
+            )
 
-                Pantalla.RESULTADOS -> ResultadoScreen(
-                    items = listaReciclaje,
-                    onTomarOtraFoto = {
-                        onChangePantalla(Pantalla.HOME)
-                    },
-                    onVolverHome = {
-                        onChangePantalla(Pantalla.HOME)
-                    }
-                )
-            }
+            Pantalla.RESULTADOS -> ResultadoScreen(
+                items = listaReciclaje,
+                onTomarOtraFoto = { onChangePantalla(Pantalla.HOME) },
+                onVolverHome = { onChangePantalla(Pantalla.HOME) }
+            )
         }
     }
 }

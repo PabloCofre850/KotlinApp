@@ -25,13 +25,10 @@ fun ResultadoScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
+        LazyColumn(modifier = Modifier.weight(1f)) {
             items(items) { item ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -42,8 +39,6 @@ fun ResultadoScreen(
                 }
             }
         }
-
-        Spacer(Modifier.height(16.dp))
 
         Button(
             modifier = Modifier.fillMaxWidth(),
