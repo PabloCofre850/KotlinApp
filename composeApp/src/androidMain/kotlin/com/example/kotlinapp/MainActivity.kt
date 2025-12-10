@@ -10,8 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import com.example.kotlinapp.models.GeminiImageClient
 import com.example.kotlinapp.models.ItemReciclaje
 import com.example.kotlinapp.models.ResultadoGemini
@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -28,13 +29,14 @@ class MainActivity : ComponentActivity() {
             val snackbarHostState = remember { SnackbarHostState() }
 
             var photo by remember { mutableStateOf<ImageBitmap?>(null) }
-            var geminiResponse by remember { mutableStateOf("") }
+            var geminiText by remember { mutableStateOf("") }
             var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
             var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
 
             val scope = rememberCoroutineScope()
             val geminiClient = remember { GeminiImageClient() }
 
+            // Permiso cámara
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { granted ->
@@ -45,8 +47,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Abrir cámara
             val cameraLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.TakePicturePreview()
+                ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
                 if (bitmap != null) {
                     photo = bitmap.asImageBitmap()
@@ -61,17 +64,18 @@ class MainActivity : ComponentActivity() {
                     App(
                         modifierPadding = padding,
                         photo = photo,
-                        geminiText = geminiResponse,
+                        geminiText = geminiText,
                         listaReciclaje = listaReciclaje,
                         pantallaActual = pantallaActual,
-                        onChangePantalla = { nueva ->
-                            pantallaActual = nueva
-                        },
+                        onChangePantalla = { pantallaActual = it },
+
                         onOpenCamera = {
                             permissionLauncher.launch(Manifest.permission.CAMERA)
                             cameraLauncher.launch(null)
                         },
+
                         onSendToGemini = {
+
                             val img = photo
                             if (img == null) {
                                 scope.launch {
@@ -80,37 +84,54 @@ class MainActivity : ComponentActivity() {
                                 return@App
                             }
 
-                            val bitmap = img.asAndroidBitmap()
-
                             scope.launch {
-                                val result = geminiClient.generateFromImage(
-                                    bitmap,
-                                    """
-                                    Analiza los objetos reciclables de la imagen.
-                                    Devuélveme SOLO el siguiente JSON válido:
-                                    
-                                    {
-                                        "items": [
-                                            {
-                                                "nombre": "...",
-                                                "material": "...",
-                                                "colorBasurero": "..."
-                                            }
-                                        ]
-                                    }
-                                    
-                                    Solo JSON, sin texto adicional.
-                                    """.trimIndent()
-                                )
 
-                                geminiResponse = result
+                                // --------------------------
+                                // 1. LLAMADA A GEMINI PROTEGIDA
+                                // --------------------------
+                                val result = try {
+                                    geminiClient.generateFromImage(
+                                        img.asAndroidBitmap(),
+                                        """
+                                        Devuelve SOLO este JSON:
+                                        {
+                                          "items":[
+                                            {"nombre":"...","material":"...","colorBasurero":"..."}
+                                          ]
+                                        }
+                                        Si nada es reciclable:
+                                        {"items":[]}
+                                        """.trimIndent()
+                                    )
+                                } catch (e: Exception) {
+                                    snackbarHostState.showSnackbar("Gemini no respondió. Intenta nuevamente.")
+                                    return@launch
+                                }
+
+                                geminiText = result
+
+                                // --------------------------
+                                // 2. PARSEO JSON PROTEGIDO
+                                // --------------------------
+                                println("RESPUESTA GEMINI >>> $result")
 
                                 try {
-                                    val parsed = Json.decodeFromString(ResultadoGemini.serializer(), result)
+                                    // Limpia json de basura
+                                    val cleanJson = result
+                                        .substringAfter("{")
+                                        .substringBeforeLast("}")
+                                        .let { "{${it}}" }
+
+                                    val parsed = Json.decodeFromString(
+                                        ResultadoGemini.serializer(),
+                                        cleanJson
+                                    )
+
                                     listaReciclaje = parsed.items
                                     pantallaActual = Pantalla.RESULTADOS
+
                                 } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar("Error al interpretar JSON de Gemini")
+                                    snackbarHostState.showSnackbar("Error al leer JSON de Gemini")
                                 }
                             }
                         }
