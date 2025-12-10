@@ -60,14 +60,27 @@ class MainActivity : ComponentActivity() {
                         geminiClient.generateFromImage(
                             image.asAndroidBitmap(),
                             """
-                            Devuelve SOLO este JSON:
+                            Analiza la imagen y detecta objetos reciclables.
+                            Devuelve SOLO un JSON con esta estructura:
                             {
-                              "items":[
-                                {"nombre":"...","material":"...","colorBasurero":"..."}
+                              "items": [
+                                {
+                                  "nombre": "Nombre del objeto",
+                                  "material": "Material principal",
+                                  "colorBasurero": "Color"
+                                }
                               ]
                             }
-                            Si nada es reciclable:
-                            {"items":[]}
+
+                            Reglas estrictas para 'colorBasurero':
+                            - Usa "Azul" para Papel y Cartón.
+                            - Usa "Amarillo" para Plásticos y PET.
+                            - Usa "Verde" para Vidrio.
+                            - Usa "Marrón" para Orgánicos.
+                            - Usa "Gris" para Restos o No reciclable.
+                            - Usa "Rojo" para Peligrosos (pilas, baterías).
+
+                            Si no hay objetos reciclables o identificables, devuelve {"items": []}.
                             """.trimIndent()
                         )
                     } catch (e: Exception) {
