@@ -20,79 +20,37 @@ import kotlinx.serialization.json.Json
 
 class MainActivity : ComponentActivity() {
 
-    // --- EXTRAE UN JSON VÁLIDO DESDE UNA RESPUESTA QUE TIENE TEXTO EXTRA ---
-    private fun extractJson(raw: String): String? {
-        val start = raw.indexOf('{')
-        val end = raw.lastIndexOf('}')
-        return if (start != -1 && end != -1 && end > start) {
-            raw.substring(start, end + 1)
-        } else null
-    }
-
-    // --- DETECTA SI LA IMAGEN ES DEMASIADO OSCURA (PROBLEMA TÍPICO EN EMULADOR) ---
-    private fun isImageTooDark(image: ImageBitmap): Boolean {
-        val bmp = image.asAndroidBitmap()
-        var total = 0L
-        var count = 0
-
-        for (x in 0 until bmp.width step 20) {
-            for (y in 0 until bmp.height step 20) {
-                val pixel = bmp.getPixel(x, y)
-                val r = (pixel shr 16) and 0xFF
-                val g = (pixel shr 8) and 0xFF
-                val b = pixel and 0xFF
-                val brightness = (r + g + b) / 3
-                total += brightness
-                count++
-            }
-        }
-
-        val avg = total / count
-        return avg < 40
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContent {
-            // Estados principales
             var photo by remember { mutableStateOf<ImageBitmap?>(null) }
             var geminiText by remember { mutableStateOf("") }
             var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
             var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
 
-            // Manejo de errores
+            // --- Estado para el Diálogo de Error ---
             var errorTitle by remember { mutableStateOf<String?>(null) }
             var errorMessage by remember { mutableStateOf<String?>(null) }
 
             val scope = rememberCoroutineScope()
             val geminiClient = remember { GeminiImageClient() }
 
+            // --- Función para mostrar errores ---
             fun showError(title: String, message: String) {
                 errorTitle = title
                 errorMessage = message
             }
 
-            // --- FLUJO AUTOMÁTICO DE ENVÍO A GEMINI ---
+            // --- Lógica de Gemini (reutilizable) ---
             val sendToGemini: (ImageBitmap) -> Unit = { image ->
                 scope.launch {
-
-                    // 1) Verificar imagen oscura en emuladores
-                    if (isImageTooDark(image)) {
-                        showError(
-                            "Imagen no válida",
-                            "La cámara del emulador produce imágenes muy oscuras. Prueba en un dispositivo real."
-                        )
-                        return@launch
-                    }
-
-                    // 2) Llamar a Gemini
-                    val raw = try {
+                    val result = try {
                         geminiClient.generateFromImage(
                             image.asAndroidBitmap(),
                             """
-                            Devuelve SOLO este JSON EXACTO:
+                            Devuelve SOLO este JSON:
                             {
                               "items":[
                                 {"nombre":"...","material":"...","colorBasurero":"..."}
@@ -103,61 +61,46 @@ class MainActivity : ComponentActivity() {
                             """.trimIndent()
                         )
                     } catch (e: Exception) {
-                        showError(
-                            "Error de Red",
-                            "Gemini no respondió. Intenta nuevamente."
-                        )
+                        showError("Error de Red", "Gemini no respondió. Revisa tu conexión e intenta de nuevo.")
                         return@launch
                     }
 
-                    geminiText = raw
+                    geminiText = result
 
-                    // 3) Extraer JSON limpio
-                    val cleanJson = extractJson(raw)
-                    if (cleanJson == null) {
-                        showError(
-                            "Respuesta inválida",
-                            "No se pudo extraer JSON válido desde la respuesta."
-                        )
-                        return@launch
-                    }
-
-                    // 4) Parsear JSON limpio
                     try {
-                        val parsed = Json {
-                            ignoreUnknownKeys = true
-                            isLenient = true
-                        }.decodeFromString(ResultadoGemini.serializer(), cleanJson)
+                        val cleanJson = result.substringAfter("{").substringBeforeLast("}").let { "{${it}}" }
+                        val parsed = Json.decodeFromString(ResultadoGemini.serializer(), cleanJson)
 
-                        listaReciclaje = parsed.items
-                        pantallaActual = Pantalla.RESULTADOS
-
+                        if (parsed.items.isEmpty()) {
+                            showError("Sin Resultados", "No pudimos identificar ningún objeto reciclable en la imagen.")
+                        } else {
+                            listaReciclaje = parsed.items
+                            pantallaActual = Pantalla.RESULTADOS
+                        }
                     } catch (e: Exception) {
-                        showError(
-                            "Error al procesar",
-                            "La estructura JSON no coincide. Intenta con otra foto."
-                        )
+                        showError("Error de Procesamiento", "No se pudo entender la respuesta del servidor. Intenta con otra imagen.")
                     }
                 }
             }
 
-            // --- MANEJO DE PERMISOS ---
+            // --- Permiso de Cámara ---
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { granted ->
                 if (!granted) {
-                    showError("Permiso denegado", "Se requiere acceso a la cámara.")
+                    showError("Permiso Requerido", "El permiso de la cámara es necesario para escanear objetos.")
                 }
             }
 
-            // --- CÁMARA (FLUJO AUTOMÁTICO) ---
+            // --- Abrir Cámara y Flujo Automático ---
             val cameraLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
                 if (bitmap != null) {
-                    val img = bitmap.asImageBitmap()
-                    photo = img
-                    sendToGemini(img) // Auto-procesamiento
+                    val imageBitmap = bitmap.asImageBitmap()
+                    photo = imageBitmap
+                    // ¡AQUÍ ESTÁ EL FLUJO AUTOMÁTICO!
+                    sendToGemini(imageBitmap)
                 }
             }
 
@@ -174,6 +117,9 @@ class MainActivity : ComponentActivity() {
                             permissionLauncher.launch(Manifest.permission.CAMERA)
                             cameraLauncher.launch(null)
                         },
+                        // onSendToGemini ya no se pasa directamente, se usa en el flujo automático
+                        onSendToGemini = {},
+                        // Pasamos los nuevos parámetros de error
                         errorTitle = errorTitle,
                         errorMessage = errorMessage,
                         onDismissError = {
