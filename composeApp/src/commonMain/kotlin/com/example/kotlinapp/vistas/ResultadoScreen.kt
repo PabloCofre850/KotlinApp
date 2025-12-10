@@ -69,7 +69,7 @@ fun ResultadoScreen(
 @Composable
 private fun ResultadoItemCompleto(item: ItemReciclaje) {
     Column {
-        // 1. Tarjeta de Datos Técnicos
+        // Tarjeta de Datos Técnicos
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = RecycleGreenSurface),
@@ -89,7 +89,7 @@ private fun ResultadoItemCompleto(item: ItemReciclaje) {
 
         Spacer(Modifier.height(8.dp))
 
-        // 2. Sección de Instrucciones (Estilo "Consejo")
+        // Sección de Instrucciones (Estilo "Consejo")
         Row(
             modifier = Modifier
                 .fillMaxWidth()

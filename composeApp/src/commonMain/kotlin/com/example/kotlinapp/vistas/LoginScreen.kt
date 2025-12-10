@@ -23,7 +23,7 @@ import com.example.kotlinapp.vistas.components.BotonPrincipal
 @Composable
 fun LoginScreen(
     irARegistro: () -> Unit,
-    irAHome: (String) -> Unit, // Recibe el username
+    irAHome: (String) -> Unit,
     clienteRepository: ClienteRepository
 ) {
     var email by remember { mutableStateOf("") }
@@ -36,7 +36,7 @@ fun LoginScreen(
         val cliente = clienteRepository.login(email, password)
         if (cliente != null) {
             mensajeError = null
-            irAHome(cliente.username) // Pasa el username
+            irAHome(cliente.username)
         } else {
             mensajeError = "Correo o contraseña incorrectos"
         }

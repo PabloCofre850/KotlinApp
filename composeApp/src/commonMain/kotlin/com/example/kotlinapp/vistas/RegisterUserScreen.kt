@@ -43,17 +43,17 @@ fun RegisterUserScreen(
     var ciudadExpanded by remember { mutableStateOf(false) }
 
     var mensaje by remember { mutableStateOf<String?>(null) }
-    var registroExitoso by remember { mutableStateOf(false) } // Nuevo estado para controlar la navegación
+    var registroExitoso by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
 
     val regiones = RegionesYCiudades.regiones.keys.toList()
     val ciudades = RegionesYCiudades.regiones[regionSeleccionada] ?: emptyList()
 
-    // Efecto para navegar automáticamente tras el éxito
+    // Navegar automáticamente t
     LaunchedEffect(registroExitoso) {
         if (registroExitoso) {
-            delay(1500) // Espera 1.5 segundos para que el usuario lea el mensaje
+            delay(1500)
             irALogin()
         }
     }
@@ -72,7 +72,7 @@ fun RegisterUserScreen(
         val nuevoCliente = Cliente(username, nombres, apellidos, email, ciudadSeleccionada, regionSeleccionada, password)
         if (clienteRepository.registrarCliente(nuevoCliente)) {
             mensaje = "¡Registro exitoso! Redirigiendo al login..."
-            registroExitoso = true // Activa la navegación automática
+            registroExitoso = true
         } else {
             mensaje = "El username o email ya están en uso."
         }
