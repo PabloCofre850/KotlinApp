@@ -4,13 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ClienteSerializable(
-    val idCliente: Int,
+    val username: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String,
     val ciudad: String,
-    val tieneDeuda: Boolean,
-    val password: String,
-    val rut: String,
-    val nombre: String,
-    val apellidoPaterno: String,
-    val apellidoMaterno: String,
-    val email: String
+    val region: String,
+    val pass: String
 )

@@ -2,13 +2,22 @@ package com.example.kotlinapp.data
 
 import com.example.kotlinapp.models.Cliente
 
-/**
- * Repositorio en memoria para manejar clientes.
- * La persistencia se ha omitido temporalmente para simplificar.
- */
-class ClienteRepository {
+class ClienteRepository(
+    private val persistencia: PersistenciaLocal
+) {
 
-    private val clientes = mutableListOf<Cliente>()
+    // Cargar los clientes desde el archivo al iniciar
+    private val clientes = persistencia.cargar().map { serializable ->
+        Cliente(
+            username = serializable.username,
+            nombres = serializable.nombres,
+            apellidos = serializable.apellidos,
+            email = serializable.email,
+            ciudad = serializable.ciudad,
+            region = serializable.region,
+            pass = serializable.pass
+        )
+    }.toMutableList()
 
     fun registrarCliente(cliente: Cliente): Boolean {
         // Validar que el username o email no existan
@@ -16,15 +25,28 @@ class ClienteRepository {
             return false
         }
         clientes.add(cliente)
-        println("Cliente registrado: ${cliente.username}")
+        guardarEnArchivo() // Guardar después de registrar
         return true
     }
 
     fun login(email: String, pass: String): Cliente? {
-        val cliente = clientes.find { it.email == email && it.pass == pass }
-        println("Intento de login para $email: ${if (cliente != null) "Exitoso" else "Fallido"}")
-        return cliente
+        return clientes.find { it.email == email && it.pass == pass }
     }
 
     fun obtenerTodos(): List<Cliente> = clientes.toList()
+
+    private fun guardarEnArchivo() {
+        val serializableList = clientes.map { cliente ->
+            ClienteSerializable(
+                username = cliente.username,
+                nombres = cliente.nombres,
+                apellidos = cliente.apellidos,
+                email = cliente.email,
+                ciudad = cliente.ciudad,
+                region = cliente.region,
+                pass = cliente.pass
+            )
+        }
+        persistencia.guardar(serializableList)
+    }
 }

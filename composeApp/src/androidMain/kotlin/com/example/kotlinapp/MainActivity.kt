@@ -12,7 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import com.example.kotlinapp.data.ClienteRepository
+import com.example.kotlinapp.data.FileStorage
+import com.example.kotlinapp.data.PersistenciaLocal
 import com.example.kotlinapp.models.GeminiImageClient
 import com.example.kotlinapp.models.ItemReciclaje
 import com.example.kotlinapp.models.ResultadoGemini
@@ -28,15 +31,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             var photo by remember { mutableStateOf<ImageBitmap?>(null) }
             var geminiText by remember { mutableStateOf("") }
-            var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) } // Corregido: mutableStateOf
+            var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
             var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
 
             var errorTitle by remember { mutableStateOf<String?>(null) }
             var errorMessage by remember { mutableStateOf<String?>(null) }
 
             val scope = rememberCoroutineScope()
+            val context = LocalContext.current
+
+            // --- Configuración de Persistencia ---
+            val clienteRepository = remember {
+                val fileStorage = FileStorage(context)
+                val persistencia = PersistenciaLocal(fileStorage)
+                ClienteRepository(persistencia)
+            }
+
             val geminiClient = remember { GeminiImageClient() }
-            val clienteRepository = remember { ClienteRepository() }
 
             fun showError(title: String, message: String) {
                 errorTitle = title
