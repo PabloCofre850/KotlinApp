@@ -6,6 +6,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import com.example.kotlinapp.data.ClienteRepository
 import com.example.kotlinapp.models.ItemReciclaje
 import com.example.kotlinapp.vistas.HomeScreen
 import com.example.kotlinapp.vistas.LoginScreen
@@ -30,29 +31,31 @@ fun App(
     onChangePantalla: (Pantalla) -> Unit,
     onOpenCamera: () -> Unit,
     onSendToGemini: () -> Unit,
-    // Nuevos parámetros para manejo de errores
     errorTitle: String?,
     errorMessage: String?,
-    onDismissError: () -> Unit
+    onDismissError: () -> Unit,
+    clienteRepository: ClienteRepository // Inyectar repositorio
 ) {
-    var nombreCliente by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         when (pantallaActual) {
             Pantalla.LOGIN -> LoginScreen(
                 irARegistro = { onChangePantalla(Pantalla.REGISTRO) },
-                irAHome = { nombre ->
-                    nombreCliente = nombre
+                irAHome = { uname ->
+                    username = uname // Guardamos el username
                     onChangePantalla(Pantalla.HOME)
-                }
+                },
+                clienteRepository = clienteRepository
             )
 
             Pantalla.REGISTRO -> RegisterUserScreen(
-                irALogin = { onChangePantalla(Pantalla.LOGIN) }
+                irALogin = { onChangePantalla(Pantalla.LOGIN) },
+                clienteRepository = clienteRepository
             )
 
             Pantalla.HOME -> HomeScreen(
-                nombreCliente = nombreCliente,
+                username = username, // Pasamos el username
                 cerrarSesion = { onChangePantalla(Pantalla.LOGIN) },
                 photo = photo,
                 geminiText = geminiText,
@@ -67,7 +70,6 @@ fun App(
             )
         }
 
-        // Mostrar el diálogo de error si existe un mensaje
         ErrorDialog(
             show = errorTitle != null && errorMessage != null,
             title = errorTitle ?: "Error",

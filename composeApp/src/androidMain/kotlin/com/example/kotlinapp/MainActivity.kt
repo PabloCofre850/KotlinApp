@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.example.kotlinapp.data.ClienteRepository
 import com.example.kotlinapp.models.GeminiImageClient
 import com.example.kotlinapp.models.ItemReciclaje
 import com.example.kotlinapp.models.ResultadoGemini
@@ -30,20 +31,18 @@ class MainActivity : ComponentActivity() {
             var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
             var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
 
-            // --- Estado para el Diálogo de Error ---
             var errorTitle by remember { mutableStateOf<String?>(null) }
             var errorMessage by remember { mutableStateOf<String?>(null) }
 
             val scope = rememberCoroutineScope()
             val geminiClient = remember { GeminiImageClient() }
+            val clienteRepository = remember { ClienteRepository() } // Instancia del repositorio
 
-            // --- Función para mostrar errores ---
             fun showError(title: String, message: String) {
                 errorTitle = title
                 errorMessage = message
             }
 
-            // --- Lógica de Gemini (reutilizable) ---
             val sendToGemini: (ImageBitmap) -> Unit = { image ->
                 scope.launch {
                     val result = try {
@@ -83,7 +82,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // --- Permiso de Cámara ---
             val permissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { granted ->
@@ -92,14 +90,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // --- Abrir Cámara y Flujo Automático ---
             val cameraLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
                 if (bitmap != null) {
                     val imageBitmap = bitmap.asImageBitmap()
                     photo = imageBitmap
-                    // ¡AQUÍ ESTÁ EL FLUJO AUTOMÁTICO!
                     sendToGemini(imageBitmap)
                 }
             }
@@ -117,15 +113,14 @@ class MainActivity : ComponentActivity() {
                             permissionLauncher.launch(Manifest.permission.CAMERA)
                             cameraLauncher.launch(null)
                         },
-                        // onSendToGemini ya no se pasa directamente, se usa en el flujo automático
                         onSendToGemini = {},
-                        // Pasamos los nuevos parámetros de error
                         errorTitle = errorTitle,
                         errorMessage = errorMessage,
                         onDismissError = {
                             errorTitle = null
                             errorMessage = null
-                        }
+                        },
+                        clienteRepository = clienteRepository // Pasar la instancia
                     )
                 }
             }

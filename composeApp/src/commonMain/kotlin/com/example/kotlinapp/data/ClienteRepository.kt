@@ -2,59 +2,29 @@ package com.example.kotlinapp.data
 
 import com.example.kotlinapp.models.Cliente
 
-class ClienteRepository(
-    private val persistencia: PersistenciaLocal
-) {
+/**
+ * Repositorio en memoria para manejar clientes.
+ * La persistencia se ha omitido temporalmente para simplificar.
+ */
+class ClienteRepository {
 
-    private val clientes = persistencia.cargar().map {
-        Cliente(
-            idCliente = it.idCliente,
-            ciudad = it.ciudad,
-            tieneDeuda = it.tieneDeuda,
-            password = it.password,
-            rut = it.rut,
-            nombre = it.nombre,
-            apellidoPaterno = it.apellidoPaterno,
-            apellidoMaterno = it.apellidoMaterno,
-            email = it.email
-        )
-    }.toMutableList()
-
-    private var ultimoId = clientes.maxOfOrNull { it.idCliente } ?: 0
+    private val clientes = mutableListOf<Cliente>()
 
     fun registrarCliente(cliente: Cliente): Boolean {
-        if (clientes.any { it.rut == cliente.rut || it.email == cliente.email }) {
+        // Validar que el username o email no existan
+        if (clientes.any { it.username == cliente.username || it.email == cliente.email }) {
             return false
         }
-
-        ultimoId++
-        val nuevo = cliente.copy(idCliente = ultimoId)
-        clientes.add(nuevo)
-
-        guardarEnArchivo()
+        clientes.add(cliente)
+        println("Cliente registrado: ${cliente.username}")
         return true
     }
 
-    fun login(email: String, password: String): Cliente? {
-        return clientes.find { it.email == email && it.password == password }
+    fun login(email: String, pass: String): Cliente? {
+        val cliente = clientes.find { it.email == email && it.pass == pass }
+        println("Intento de login para $email: ${if (cliente != null) "Exitoso" else "Fallido"}")
+        return cliente
     }
 
     fun obtenerTodos(): List<Cliente> = clientes.toList()
-
-    private fun guardarEnArchivo() {
-        val serializableList = clientes.map {
-            ClienteSerializable(
-                idCliente = it.idCliente,
-                ciudad = it.ciudad,
-                tieneDeuda = it.tieneDeuda,
-                password = it.password,
-                rut = it.rut,
-                nombre = it.nombre,
-                apellidoPaterno = it.apellidoPaterno,
-                apellidoMaterno = it.apellidoMaterno,
-                email = it.email
-            )
-        }
-        persistencia.guardar(serializableList)
-    }
 }
