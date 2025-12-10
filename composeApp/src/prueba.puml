@@ -1,0 +1,198 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam defaultFontName "Arial"
+
+
+package "Dominio (models)" {
+
+    abstract class Persona {
+        +username : String
+        +nombres : String
+        +apellidos : String
+        +email : String
+        +ciudad : String
+        +region : String
+    }
+
+    class Cliente {
+        +pass : String
+    }
+
+    class Basurero {
+        -color : String
+        -description : String
+        -esReciclable : Boolean
+        +getColor() : String
+    }
+
+    abstract class Material {
+        -nombreMaterial : String
+        -puntosBase : Int
+        +getNombre() : String
+        +getPuntosBase() : Int
+        +obtenerContenedorAsignado() : Basurero
+        +calcularPuntosExtra(confianzaIA: Float) : Int
+    }
+
+    class MaterialCarton
+    class MaterialOrganico
+    class MaterialPapel {
+        -estaLimpio : Boolean
+    }
+    class MaterialPlastico
+
+    class ItemReciclaje {
+        +nombre : String
+        +material : String
+        +colorBasurero : String
+    }
+
+    class ResultadoGemini {
+        +items : List<ItemReciclaje>
+    }
+
+    Persona <|-- Cliente
+
+    Material <|-- MaterialCarton
+    Material <|-- MaterialOrganico
+    Material <|-- MaterialPapel
+    Material <|-- MaterialPlastico
+
+    ResultadoGemini *-- ItemReciclaje
+    Material --> Basurero
+}
+
+
+package "Data" {
+
+    class ClienteSerializable {
+        +username
+        +nombres
+        +apellidos
+        +email
+        +ciudad
+        +region
+        +pass
+    }
+
+    class PersistenciaLocal {
+        -storage : FileStorage
+        +guardar(lista)
+        +cargar() : List<ClienteSerializable>
+    }
+
+    class ClienteRepository {
+        -clientes : MutableList<Cliente>
+        +registrarCliente(cliente) : Boolean
+        +login(email, pass) : Cliente?
+        +obtenerTodos() : List<Cliente>
+    }
+
+    abstract class FileStorage {
+        +writeText(filename, text)
+        +readText(filename) : String?
+    }
+
+    class RegionesYCiudades {
+        +regiones : Map<String, List<String>>
+    }
+
+    PersistenciaLocal *-- ClienteSerializable
+    ClienteRepository *-- Cliente
+    ClienteRepository --> PersistenciaLocal
+    PersistenciaLocal --> FileStorage
+}
+
+
+package "AI" {
+
+    class GeminiImageClient {
+        -model : GenerativeModel
+        +generateFromImage(bitmap, userPrompt) : String
+    }
+
+    class GeminiConfig {
+        +GEMINI_API_KEY : String
+    }
+
+    GeminiImageClient --> GeminiConfig
+}
+
+
+package "Platform" {
+
+    abstract class Platform {
+        +name : String
+    }
+
+    class AndroidPlatform {
+        +name : String
+    }
+
+    class Greeting {
+        +greet() : String
+    }
+
+    Platform <|-- AndroidPlatform
+}
+
+
+package "UI (Compose)" {
+
+    enum Pantalla {
+        LOGIN
+        REGISTRO
+        HOME
+        RESULTADOS
+    }
+
+    class App {
+        +photo : ImageBitmap?
+        +geminiText : String
+        +listaReciclaje : List<ItemReciclaje>
+        +pantallaActual : Pantalla
+        +onChangePantalla()
+        +onOpenCamera()
+        +onSendToGemini()
+    }
+
+    class LoginScreen
+    class RegisterUserScreen
+    class HomeScreen
+    class ResultadoScreen
+
+    class BotonPrincipal
+    class BotonSecundario
+    class BotonLink
+    class CampoTextField
+    class CampoPasswordField
+    class ErrorDialog
+
+    App --> LoginScreen
+    App --> RegisterUserScreen
+    App --> HomeScreen
+    App --> ResultadoScreen
+
+    LoginScreen --> ClienteRepository
+    RegisterUserScreen --> ClienteRepository
+}
+
+
+package "Main" {
+
+    class MainActivity {
+        +geminiClient : GeminiImageClient
+        +clienteRepository : ClienteRepository
+        +sendToGemini()
+    }
+
+    MainActivity --> GeminiImageClient
+    MainActivity --> ClienteRepository
+    MainActivity --> App
+}
+
+@enduml
