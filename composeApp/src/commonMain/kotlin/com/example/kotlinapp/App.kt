@@ -29,16 +29,18 @@ fun App(
     pantallaActual: Pantalla,
     onChangePantalla: (Pantalla) -> Unit,
     onOpenCamera: () -> Unit,
-    onSendToGemini: () -> Unit,
-    // Nuevos parámetros para manejo de errores
+    // ELIMINADO: onSendToGemini
     errorTitle: String?,
     errorMessage: String?,
     onDismissError: () -> Unit
 ) {
+
     var nombreCliente by remember { mutableStateOf("") }
 
     Surface(modifier = Modifier.fillMaxSize()) {
+
         when (pantallaActual) {
+
             Pantalla.LOGIN -> LoginScreen(
                 irARegistro = { onChangePantalla(Pantalla.REGISTRO) },
                 irAHome = { nombre ->
@@ -56,8 +58,8 @@ fun App(
                 cerrarSesion = { onChangePantalla(Pantalla.LOGIN) },
                 photo = photo,
                 geminiText = geminiText,
-                onOpenCamera = onOpenCamera,
-                onSendToGemini = onSendToGemini
+                onOpenCamera = onOpenCamera
+                // REMOVIDO: onSendToGemini
             )
 
             Pantalla.RESULTADOS -> ResultadoScreen(
@@ -67,7 +69,7 @@ fun App(
             )
         }
 
-        // Mostrar el diálogo de error si existe un mensaje
+        // --- Cuadro de error global ---
         ErrorDialog(
             show = errorTitle != null && errorMessage != null,
             title = errorTitle ?: "Error",

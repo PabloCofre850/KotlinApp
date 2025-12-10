@@ -23,8 +23,7 @@ fun HomeScreen(
     cerrarSesion: () -> Unit,
     photo: ImageBitmap?,
     geminiText: String,
-    onOpenCamera: () -> Unit,
-    onSendToGemini: () -> Unit
+    onOpenCamera: () -> Unit,   // ← SOLO ESTO SE USA
 ) {
     val consejos = listOf(
         "Separa siempre el plástico, vidrio y papel.",
@@ -63,12 +62,11 @@ fun HomeScreen(
                 modifier = Modifier.padding(20.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Reemplazo de Icono de Cámara por Emoji
-                Text(
-                    text = "📸",
-                    fontSize = 60.sp
-                )
+
+                Text(text = "📸", fontSize = 60.sp)
+
                 Spacer(Modifier.height(12.dp))
+
                 Text(
                     "¿Listo para reciclar?",
                     style = MaterialTheme.typography.titleLarge,
@@ -80,16 +78,19 @@ fun HomeScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = RecycleGreenDark
                 )
+
                 Spacer(Modifier.height(16.dp))
+
+                // *** BOTÓN CORRECTO ***
                 BotonPrincipal(
                     texto = "Escanear Producto",
-                    onClick = onOpenCamera
+                    onClick = onOpenCamera   // ← FLUJO AUTOMÁTICO
                 )
             }
         }
 
-        // --- Sección de Consejos ---
         Spacer(Modifier.height(32.dp))
+
         Text(
             "Consejos Rápidos",
             style = MaterialTheme.typography.titleLarge,
@@ -105,10 +106,8 @@ fun HomeScreen(
             }
         }
 
-        // Espacio para empujar el botón de cerrar sesión hacia abajo
         Spacer(Modifier.weight(1f))
 
-        // --- Botón de Cerrar Sesión ---
         BotonSecundario(
             texto = "Cerrar sesión",
             onClick = cerrarSesion
@@ -122,15 +121,12 @@ private fun ConsejoCard(texto: String) {
         modifier = Modifier.width(180.dp).height(120.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            // Reemplazo de Icono de Bombilla por Emoji
-            Text(
-                text = "💡",
-                fontSize = 24.sp
-            )
+        Column(modifier = Modifier.padding(12.dp)) {
+
+            Text(text = "💡", fontSize = 24.sp)
+
             Spacer(Modifier.height(8.dp))
+
             Text(
                 text = texto,
                 style = MaterialTheme.typography.bodySmall,
