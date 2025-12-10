@@ -36,11 +36,12 @@ class MainActivity : ComponentActivity() {
 
             var errorTitle by remember { mutableStateOf<String?>(null) }
             var errorMessage by remember { mutableStateOf<String?>(null) }
+            
+            var isLoading by remember { mutableStateOf(false) }
 
             val scope = rememberCoroutineScope()
             val context = LocalContext.current
 
-            // --- Configuración de Persistencia ---
             val clienteRepository = remember {
                 val fileStorage = FileStorage(context)
                 val persistencia = PersistenciaLocal(fileStorage)
@@ -56,41 +57,44 @@ class MainActivity : ComponentActivity() {
 
             val sendToGemini: (ImageBitmap) -> Unit = { image ->
                 scope.launch {
-                    val result = try {
-                        geminiClient.generateFromImage(
+                    isLoading = true
+                    try {
+                        val result = geminiClient.generateFromImage(
                             image.asAndroidBitmap(),
                             """
-                            Analiza la imagen y detecta objetos reciclables.
+                            Analiza la imagen y detecta objetos reciclables en el contexto de Chile.
                             Devuelve SOLO un JSON con esta estructura:
                             {
                               "items": [
                                 {
                                   "nombre": "Nombre del objeto",
                                   "material": "Material principal",
-                                  "colorBasurero": "Color"
+                                  "colorBasurero": "Color",
+                                  "instrucciones": "Texto con los pasos."
                                 }
                               ]
                             }
 
-                            Reglas estrictas para 'colorBasurero':
-                            - Usa "Azul" para Papel y Cartón.
-                            - Usa "Amarillo" para Plásticos y PET.
-                            - Usa "Verde" para Vidrio.
-                            - Usa "Marrón" para Orgánicos.
-                            - Usa "Gris" para Restos o No reciclable.
-                            - Usa "Rojo" para Peligrosos (pilas, baterías).
+                            Reglas para 'colorBasurero' (Norma Chilena):
+                            - "Azul" para Papel y Cartón.
+                            - "Amarillo" para Plásticos y PET.
+                            - "Verde" para Vidrio.
+                            - "Marrón" para Orgánicos.
+                            - "Gris" para Restos/No reciclable.
+                            - "Rojo" para Peligrosos.
 
-                            Si no hay objetos reciclables o identificables, devuelve {"items": []}.
+                            Reglas para 'instrucciones':
+                            - Usa un tono FORMAL y claro.
+                            - Usa terminología de Chile (ej: "Punto Limpio", "Municipalidad"). EVITA términos como "Ayuntamiento" o "Fregadero".
+                            - Sé BREVE. Máximo 3 líneas.
+                            - Usa '\n' para separar los pasos.
+                            - Ejemplo: "1. Lave y seque el envase.\n2. Aplaste para reducir volumen.\n3. Deposite en el contenedor [Color]."
+
+                            Si no hay objetos reciclables, devuelve {"items": []}.
                             """.trimIndent()
                         )
-                    } catch (e: Exception) {
-                        showError("Error de Red", "Gemini no respondió. Revisa tu conexión e intenta de nuevo.")
-                        return@launch
-                    }
 
-                    geminiText = result
-
-                    try {
+                        geminiText = result
                         val cleanJson = result.substringAfter("{").substringBeforeLast("}").let { "{${it}}" }
                         val parsed = Json.decodeFromString(ResultadoGemini.serializer(), cleanJson)
 
@@ -100,8 +104,12 @@ class MainActivity : ComponentActivity() {
                             listaReciclaje = parsed.items
                             pantallaActual = Pantalla.RESULTADOS
                         }
+
                     } catch (e: Exception) {
-                        showError("Error de Procesamiento", "No se pudo entender la respuesta del servidor. Intenta con otra imagen.")
+                        // Captura errores de red o de parseo
+                        showError("Error", "No se pudo procesar la imagen. Revisa tu conexión o intenta con otra foto.")
+                    } finally {
+                        isLoading = false // Se ejecuta siempre
                     }
                 }
             }
@@ -144,7 +152,8 @@ class MainActivity : ComponentActivity() {
                             errorTitle = null
                             errorMessage = null
                         },
-                        clienteRepository = clienteRepository
+                        clienteRepository = clienteRepository,
+                        isLoading = isLoading
                     )
                 }
             }

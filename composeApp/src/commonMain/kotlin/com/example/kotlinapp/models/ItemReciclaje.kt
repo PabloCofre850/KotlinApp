@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class ItemReciclaje(
     val nombre: String,
     val material: String,
-    val colorBasurero: String
+    val colorBasurero: String,
+    val instrucciones: String // Nuevo campo para los pasos humanos
 )
