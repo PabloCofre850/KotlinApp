@@ -1,16 +1,17 @@
 package com.example.kotlinapp
 
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.unit.dp
 import com.example.kotlinapp.models.ItemReciclaje
 import com.example.kotlinapp.vistas.HomeScreen
 import com.example.kotlinapp.vistas.LoginScreen
 import com.example.kotlinapp.vistas.RegisterUserScreen
 import com.example.kotlinapp.vistas.ResultadoScreen
+import com.example.kotlinapp.vistas.components.ErrorDialog
 
 enum class Pantalla {
     LOGIN,
@@ -28,13 +29,16 @@ fun App(
     pantallaActual: Pantalla,
     onChangePantalla: (Pantalla) -> Unit,
     onOpenCamera: () -> Unit,
-    onSendToGemini: () -> Unit
+    onSendToGemini: () -> Unit,
+    // Nuevos parámetros para manejo de errores
+    errorTitle: String?,
+    errorMessage: String?,
+    onDismissError: () -> Unit
 ) {
     var nombreCliente by remember { mutableStateOf("") }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         when (pantallaActual) {
-
             Pantalla.LOGIN -> LoginScreen(
                 irARegistro = { onChangePantalla(Pantalla.REGISTRO) },
                 irAHome = { nombre ->
@@ -62,5 +66,13 @@ fun App(
                 onVolverHome = { onChangePantalla(Pantalla.HOME) }
             )
         }
+
+        // Mostrar el diálogo de error si existe un mensaje
+        ErrorDialog(
+            show = errorTitle != null && errorMessage != null,
+            title = errorTitle ?: "Error",
+            message = errorMessage ?: "Ha ocurrido un error inesperado.",
+            onDismiss = onDismissError
+        )
     }
 }

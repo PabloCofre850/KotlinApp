@@ -25,42 +25,87 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
-            val snackbarHostState = remember { SnackbarHostState() }
-
             var photo by remember { mutableStateOf<ImageBitmap?>(null) }
             var geminiText by remember { mutableStateOf("") }
             var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
             var pantallaActual by remember { mutableStateOf(Pantalla.LOGIN) }
 
+            // --- Estado para el Diálogo de Error ---
+            var errorTitle by remember { mutableStateOf<String?>(null) }
+            var errorMessage by remember { mutableStateOf<String?>(null) }
+
             val scope = rememberCoroutineScope()
             val geminiClient = remember { GeminiImageClient() }
 
-            // Permiso cámara
-            val permissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission()
-            ) { granted ->
-                if (!granted) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Permiso de cámara denegado")
+            // --- Función para mostrar errores ---
+            fun showError(title: String, message: String) {
+                errorTitle = title
+                errorMessage = message
+            }
+
+            // --- Lógica de Gemini (reutilizable) ---
+            val sendToGemini: (ImageBitmap) -> Unit = { image ->
+                scope.launch {
+                    val result = try {
+                        geminiClient.generateFromImage(
+                            image.asAndroidBitmap(),
+                            """
+                            Devuelve SOLO este JSON:
+                            {
+                              "items":[
+                                {"nombre":"...","material":"...","colorBasurero":"..."}
+                              ]
+                            }
+                            Si nada es reciclable:
+                            {"items":[]}
+                            """.trimIndent()
+                        )
+                    } catch (e: Exception) {
+                        showError("Error de Red", "Gemini no respondió. Revisa tu conexión e intenta de nuevo.")
+                        return@launch
+                    }
+
+                    geminiText = result
+
+                    try {
+                        val cleanJson = result.substringAfter("{").substringBeforeLast("}").let { "{${it}}" }
+                        val parsed = Json.decodeFromString(ResultadoGemini.serializer(), cleanJson)
+
+                        if (parsed.items.isEmpty()) {
+                            showError("Sin Resultados", "No pudimos identificar ningún objeto reciclable en la imagen.")
+                        } else {
+                            listaReciclaje = parsed.items
+                            pantallaActual = Pantalla.RESULTADOS
+                        }
+                    } catch (e: Exception) {
+                        showError("Error de Procesamiento", "No se pudo entender la respuesta del servidor. Intenta con otra imagen.")
                     }
                 }
             }
 
-            // Abrir cámara
+            // --- Permiso de Cámara ---
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { granted ->
+                if (!granted) {
+                    showError("Permiso Requerido", "El permiso de la cámara es necesario para escanear objetos.")
+                }
+            }
+
+            // --- Abrir Cámara y Flujo Automático ---
             val cameraLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
                 if (bitmap != null) {
-                    photo = bitmap.asImageBitmap()
+                    val imageBitmap = bitmap.asImageBitmap()
+                    photo = imageBitmap
+                    // ¡AQUÍ ESTÁ EL FLUJO AUTOMÁTICO!
+                    sendToGemini(imageBitmap)
                 }
             }
 
             MaterialTheme {
-                Scaffold(
-                    snackbarHost = { SnackbarHost(snackbarHostState) }
-                ) { padding ->
-
+                Scaffold { padding ->
                     App(
                         modifierPadding = padding,
                         photo = photo,
@@ -68,72 +113,18 @@ class MainActivity : ComponentActivity() {
                         listaReciclaje = listaReciclaje,
                         pantallaActual = pantallaActual,
                         onChangePantalla = { pantallaActual = it },
-
                         onOpenCamera = {
                             permissionLauncher.launch(Manifest.permission.CAMERA)
                             cameraLauncher.launch(null)
                         },
-
-                        onSendToGemini = {
-
-                            val img = photo
-                            if (img == null) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Primero toma una foto")
-                                }
-                                return@App
-                            }
-
-                            scope.launch {
-
-                                // --------------------------
-                                // 1. LLAMADA A GEMINI PROTEGIDA
-                                // --------------------------
-                                val result = try {
-                                    geminiClient.generateFromImage(
-                                        img.asAndroidBitmap(),
-                                        """
-                                        Devuelve SOLO este JSON:
-                                        {
-                                          "items":[
-                                            {"nombre":"...","material":"...","colorBasurero":"..."}
-                                          ]
-                                        }
-                                        Si nada es reciclable:
-                                        {"items":[]}
-                                        """.trimIndent()
-                                    )
-                                } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar("Gemini no respondió. Intenta nuevamente.")
-                                    return@launch
-                                }
-
-                                geminiText = result
-
-                                // --------------------------
-                                // 2. PARSEO JSON PROTEGIDO
-                                // --------------------------
-                                println("RESPUESTA GEMINI >>> $result")
-
-                                try {
-                                    // Limpia json de basura
-                                    val cleanJson = result
-                                        .substringAfter("{")
-                                        .substringBeforeLast("}")
-                                        .let { "{${it}}" }
-
-                                    val parsed = Json.decodeFromString(
-                                        ResultadoGemini.serializer(),
-                                        cleanJson
-                                    )
-
-                                    listaReciclaje = parsed.items
-                                    pantallaActual = Pantalla.RESULTADOS
-
-                                } catch (e: Exception) {
-                                    snackbarHostState.showSnackbar("Error al leer JSON de Gemini")
-                                }
-                            }
+                        // onSendToGemini ya no se pasa directamente, se usa en el flujo automático
+                        onSendToGemini = {},
+                        // Pasamos los nuevos parámetros de error
+                        errorTitle = errorTitle,
+                        errorMessage = errorMessage,
+                        onDismissError = {
+                            errorTitle = null
+                            errorMessage = null
                         }
                     )
                 }
