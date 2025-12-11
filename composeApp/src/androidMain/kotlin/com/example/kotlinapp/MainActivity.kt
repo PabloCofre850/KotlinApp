@@ -29,6 +29,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+
+            // ---------- ESTADOS ----------
             var photo by remember { mutableStateOf<ImageBitmap?>(null) }
             var geminiText by remember { mutableStateOf("") }
             var listaReciclaje by remember { mutableStateOf<List<ItemReciclaje>>(emptyList()) }
@@ -36,18 +38,19 @@ class MainActivity : ComponentActivity() {
 
             var errorTitle by remember { mutableStateOf<String?>(null) }
             var errorMessage by remember { mutableStateOf<String?>(null) }
-            
             var isLoading by remember { mutableStateOf(false) }
 
             val scope = rememberCoroutineScope()
             val context = LocalContext.current
 
+            // ---------- REPOSITORIO ----------
             val clienteRepository = remember {
                 val fileStorage = FileStorage(context)
                 val persistencia = PersistenciaLocal(fileStorage)
                 ClienteRepository(persistencia)
             }
 
+            // ---------- CLIENTE GEMINI ----------
             val geminiClient = remember { GeminiImageClient() }
 
             fun showError(title: String, message: String) {
@@ -55,73 +58,71 @@ class MainActivity : ComponentActivity() {
                 errorMessage = message
             }
 
-            val sendToGemini: (ImageBitmap) -> Unit = { image ->
+            // ---------- FUNCIÓN PARA ENVIAR FOTO A GEMINI ----------
+            val sendToGemini: (ImageBitmap) -> Unit = { imageBitmap ->
+
                 scope.launch {
                     isLoading = true
+
                     try {
                         val result = geminiClient.generateFromImage(
-                            image.asAndroidBitmap(),
-                            """
-                            Analiza la imagen y detecta objetos reciclables en el contexto de Chile.
-                            Devuelve SOLO un JSON con esta estructura:
-                            {
-                              "items": [
+                            bitmap = imageBitmap.asAndroidBitmap(),
+                            userPrompt = """
+                                Analiza la imagen y detecta objetos reciclables presentes.
+
+                                Devuelve EXCLUSIVAMENTE un JSON con esta estructura exacta:
+
                                 {
-                                  "nombre": "Nombre del objeto",
-                                  "material": "Material principal",
-                                  "colorBasurero": "Color",
-                                  "instrucciones": "Texto con los pasos."
+                                  "items": [
+                                    {
+                                      "nombre": "Texto",
+                                      "material": "Plástico|Papel|Cartón|Vidrio|Metal|Orgánico|NoReciclable",
+                                      "colorBasurero": "Amarillo|Azul|Verde|Marrón|Gris|Rojo",
+                                      "instrucciones": "Texto breve con pasos"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
 
-                            Reglas para 'colorBasurero' (Norma Chilena):
-                            - "Azul" para Papel y Cartón.
-                            - "Amarillo" para Plásticos y PET.
-                            - "Verde" para Vidrio.
-                            - "Marrón" para Orgánicos.
-                            - "Gris" para Restos/No reciclable.
-                            - "Rojo" para Peligrosos.
-
-                            Reglas para 'instrucciones':
-                            - Usa un tono FORMAL y claro.
-                            - Usa terminología de Chile (ej: "Punto Limpio", "Municipalidad"). EVITA términos como "Ayuntamiento" o "Fregadero".
-                            - Sé BREVE. Máximo 3 líneas.
-                            - Usa '\n' para separar los pasos.
-                            - Ejemplo: "1. Lave y seque el envase.\n2. Aplaste para reducir volumen.\n3. Deposite en el contenedor [Color]."
-
-                            Si no hay objetos reciclables, devuelve {"items": []}.
+                                Reglas:
+                                - NO devuelvas "Desconocido". Si no estás seguro, elige el material más probable.
+                                - No uses ```json ni explicaciones fuera del JSON.
+                                - Si no hay objetos reciclables, devuelve {"items": []}.
                             """.trimIndent()
                         )
 
                         geminiText = result
-                        val cleanJson = result.substringAfter("{").substringBeforeLast("}").let { "{${it}}" }
-                        val parsed = Json.decodeFromString(ResultadoGemini.serializer(), cleanJson)
+
+                        // ---------------- LIMPIADOR DE JSON ----------------
+                        val cleanJson = result
+                            .trim()
+                            .removePrefix("```json")
+                            .removePrefix("```")
+                            .removeSuffix("```")
+                            .trim()
+
+                        val parsed = try {
+                            Json.decodeFromString(ResultadoGemini.serializer(), cleanJson)
+                        } catch (e: Exception) {
+                            showError("Error en IA", "La respuesta no es válida. Intenta otra foto.")
+                            ResultadoGemini(emptyList())
+                        }
 
                         if (parsed.items.isEmpty()) {
-                            showError("Sin Resultados", "No pudimos identificar ningún objeto reciclable en la imagen.")
+                            showError("Sin resultados", "No se detectaron objetos reciclables.")
                         } else {
                             listaReciclaje = parsed.items
                             pantallaActual = Pantalla.RESULTADOS
                         }
 
                     } catch (e: Exception) {
-
-                        showError("Error", "No se pudo procesar la imagen. Revisa tu conexión o intenta con otra foto.")
+                        showError("Error", "No se pudo procesar la imagen. Intenta de nuevo.")
                     } finally {
                         isLoading = false
                     }
                 }
             }
 
-            val permissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission()
-            ) { granted ->
-                if (!granted) {
-                    showError("Permiso Requerido", "El permiso de la cámara es necesario para escanear objetos.")
-                }
-            }
-
+            // ---------- LAUNCHER DE CÁMARA ----------
             val cameraLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.TakePicturePreview()
             ) { bitmap ->
@@ -132,6 +133,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // ---------- LAUNCHER DE PERMISO ----------
+            val permissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { granted ->
+                if (granted) {
+                    cameraLauncher.launch(null)   // SOLO AQUÍ SE ABRE LA CÁMARA
+                } else {
+                    showError("Permiso requerido", "La cámara es necesaria para continuar.")
+                }
+            }
+
+            // ---------- INTERFAZ ----------
+
             MaterialTheme {
                 Scaffold { padding ->
                     App(
@@ -141,17 +155,21 @@ class MainActivity : ComponentActivity() {
                         listaReciclaje = listaReciclaje,
                         pantallaActual = pantallaActual,
                         onChangePantalla = { pantallaActual = it },
+
+                        // Botón de HomeScreen
                         onOpenCamera = {
                             permissionLauncher.launch(Manifest.permission.CAMERA)
-                            cameraLauncher.launch(null)
                         },
+
                         onSendToGemini = {},
+
                         errorTitle = errorTitle,
                         errorMessage = errorMessage,
                         onDismissError = {
                             errorTitle = null
                             errorMessage = null
                         },
+
                         clienteRepository = clienteRepository,
                         isLoading = isLoading
                     )
